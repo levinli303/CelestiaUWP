@@ -1,5 +1,5 @@
 ﻿//
-// ResourceConstants.cs
+// Constants.cs
 //
 // Copyright © 2021 Celestia Development Team. All rights reserved.
 //
@@ -9,8 +9,8 @@
 // of the License, or (at your option) any later version.
 //
 
-namespace CelestiaUWP.Addon
-{ 
+namespace CelestiaUWP
+{
     public class Constants
     {
         public static string APIPrefix = "https://celestia.mobi/api";

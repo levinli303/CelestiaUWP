@@ -27,6 +27,18 @@ namespace CelestiaUWP
         public ObservableCollection<BookmarkNode> Children;
     }
 
+    public class BookmarkArgs
+    {
+        public CelestiaAppCore AppCore;
+        public CelestiaRenderer Renderer;
+
+        public BookmarkArgs(CelestiaAppCore AppCore, CelestiaRenderer Renderer)
+        {
+            this.AppCore = AppCore;
+            this.Renderer = Renderer;
+        }
+    }
+
     public class BookmarkBasePage : Page, INotifyPropertyChanged
     {
         protected CelestiaAppCore AppCore;
@@ -35,9 +47,9 @@ namespace CelestiaUWP
         protected ObservableCollection<BookmarkNode> Bookmarks = new ObservableCollection<BookmarkNode>();
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            var parameter = ((CelestiaAppCore, CelestiaRenderer))e.Parameter;
-            AppCore = parameter.Item1;
-            Renderer = parameter.Item2;
+            var parameter = (BookmarkArgs)e.Parameter;
+            AppCore = parameter.AppCore;
+            Renderer = parameter.Renderer;
             ReadBookmarks();
         }
 

@@ -10,6 +10,8 @@
 //
 
 using CelestiaUWP.Helper;
+using Microsoft.Toolkit.Mvvm.Messaging;
+using Microsoft.Toolkit.Mvvm.Messaging.Messages;
 using System;
 using System.Collections.ObjectModel;
 using Windows.UI.Xaml;
@@ -17,6 +19,25 @@ using Windows.UI.Xaml.Controls;
 
 namespace CelestiaUWP
 {
+    public class ShareURLRequest
+    {
+        public string URL;
+        public string Name;
+
+        public ShareURLRequest(BookmarkNode node)
+        {
+            URL = node.URL;
+            Name = node.Name;
+        }
+    }
+
+    public class ShareURLMessage : ValueChangedMessage<ShareURLRequest>
+    {
+        public ShareURLMessage(ShareURLRequest request) : base(request)
+        {
+        }
+    }
+
     public sealed partial class BookmarkOrganizerPage : BookmarkBasePage
     {
         public BookmarkOrganizerPage()
@@ -26,6 +47,7 @@ namespace CelestiaUWP
             NewFolderButton.Content = LocalizationHelper.Localize("New Folder");
             DeleteButton.Content = LocalizationHelper.Localize("Delete");
             GoButton.Content = LocalizationHelper.Localize("Go");
+            ShareButton.Content = LocalizationHelper.Localize("Share");
             RenameButton.Content = LocalizationHelper.Localize("Rename");
         }
 
@@ -105,6 +127,15 @@ namespace CelestiaUWP
                     AppCore.GoToURL(bookmark.URL);
                 });
             }
+        }
+
+        private void ShareButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (Tree.SelectedItem == null) return;
+            var bookmark = (BookmarkNode)Tree.SelectedItem;
+            var url = bookmark.URL;
+            if (url == null) return;
+            WeakReferenceMessenger.Default.Send(new ShareURLMessage(new ShareURLRequest(bookmark)));
         }
     }
 }

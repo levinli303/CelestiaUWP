@@ -11,7 +11,7 @@
 
 using Newtonsoft.Json;
 
-namespace CelestiaUWP.Addon
+namespace CelestiaUWP
 {
     public class RequestResult
     {

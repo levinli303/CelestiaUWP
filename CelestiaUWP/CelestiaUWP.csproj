@@ -131,11 +131,10 @@
     <Compile Include="Addon\InstalledItemListPage.xaml.cs">
       <DependentUpon>InstalledItemListPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Addon\RequestResult.cs" />
+    <Compile Include="RequestResult.cs" />
     <Compile Include="Addon\ResourceCategoryListPage.xaml.cs">
       <DependentUpon>ResourceCategoryListPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Addon\ResourceConstants.cs" />
     <Compile Include="Addon\ResourceItem.cs" />
     <Compile Include="Addon\ResourceItemListPage.xaml.cs">
       <DependentUpon>ResourceItemListPage.xaml</DependentUpon>
@@ -153,6 +152,7 @@
       <DependentUpon>BookmarkOrganizerPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Addon\ResourceCategory.cs" />
+    <Compile Include="Constants.cs" />
     <Compile Include="Helper\CelestiaAppHelper.cs" />
     <Compile Include="Helper\DoubleFloatConverter.cs" />
     <Compile Include="Helper\NavigationViewItem.cs" />
@@ -206,6 +206,8 @@
     <Compile Include="TourGuidePage.xaml.cs">
       <DependentUpon>TourGuidePage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="URL\URLCreationRequest.cs" />
+    <Compile Include="URL\URLCreationResponse.cs" />
     <Compile Include="ViewOptionsPage.xaml.cs">
       <DependentUpon>ViewOptionsPage.xaml</DependentUpon>
     </Compile>
@@ -384,6 +386,9 @@
     </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.2.12</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Toolkit.Mvvm">
+      <Version>7.0.2</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Toolkit.Uwp.UI">
       <Version>7.0.1</Version>

@@ -21,6 +21,7 @@
             <Button Content="New Folder" x:Name="NewFolderButton" Click="NewFolderButton_Click" HorizontalAlignment="Center" Width="100"></Button>
             <Button Content="Rename" x:Name="RenameButton" Click="RenameButton_Click" HorizontalAlignment="Center" Width="100"></Button>
             <Button Content="Delete" x:Name="DeleteButton" Click="DeleteButton_Click" HorizontalAlignment="Center" Width="100"></Button>
+            <Button Content="Share" x:Name="ShareButton" Click="ShareButton_Click" HorizontalAlignment="Center" Width="100"></Button>
             <Button Content="Go" x:Name="GoButton" Click="GoButton_Click" HorizontalAlignment="Center" Width="100"></Button>
         </StackPanel>
     </RelativePanel>

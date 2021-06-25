@@ -11,11 +11,14 @@
 
 using CelestiaComponent;
 using CelestiaUWP.Helper;
+using CelestiaUWP.URL;
+using Microsoft.Toolkit.Mvvm.Messaging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Windows.ApplicationModel;
 using Windows.ApplicationModel.Core;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
@@ -48,6 +51,9 @@ namespace CelestiaUWP
         private bool ReadyForInput = false;
 
         private readonly AppSettings AppSettings = AppSettings.Shared;
+
+        private Uri URLToShare;
+        private DataTransferManager ShareManager;
 
         private string defaultParentPath
         {
@@ -87,6 +93,9 @@ namespace CelestiaUWP
 
             var coreTitleBar = CoreApplication.GetCurrentView().TitleBar;
             coreTitleBar.ExtendViewIntoTitleBar = false;
+
+            ShareManager = DataTransferManager.GetForCurrentView();
+            ShareManager.DataRequested += DataTransferManager_DataRequested;
         }
 
         private void MainPage_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -126,7 +135,8 @@ namespace CelestiaUWP
 
             await Task.Run(() => CreateExtraFolders());
 
-            mRenderer = new CelestiaRenderer(AppSettings.EnableMSAA, () => {
+            mRenderer = new CelestiaRenderer(AppSettings.EnableMSAA, () =>
+            {
                 CelestiaAppCore.InitGL();
 
                 List<string> extraPaths = new List<string>();
@@ -302,7 +312,8 @@ namespace CelestiaUWP
                 mExtraAddonFolder = addonFolder.Path;
                 var scriptFolder = await mainFolder.CreateFolderAsync("scripts", Windows.Storage.CreationCollisionOption.OpenIfExists);
                 mExtraScriptFolder = scriptFolder.Path;
-            } catch { }
+            }
+            catch { }
         }
 
         void SetUpGLViewInteractions()
@@ -698,12 +709,19 @@ namespace CelestiaUWP
 
             AppendItem(fileItem, LocalizationHelper.Localize("Copy URL"), (sender, arg) =>
             {
-                DataPackage dataPackage = new DataPackage
+                mRenderer.EnqueueTask(() =>
                 {
-                    RequestedOperation = DataPackageOperation.Copy
-                };
-                dataPackage.SetText(mAppCore.CurrentURL);
-                Clipboard.SetContent(dataPackage);
+                    var url = mAppCore.CurrentURL;
+                    _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                    {
+                        DataPackage dataPackage = new DataPackage
+                        {
+                            RequestedOperation = DataPackageOperation.Copy
+                        };
+                        dataPackage.SetText(url);
+                        Clipboard.SetContent(dataPackage);
+                    });
+                });
             }, new KeyboardAccelerator() { Modifiers = VirtualKeyModifiers.Control, Key = VirtualKey.C });
             AppendItem(fileItem, LocalizationHelper.Localize("Paste URL"), async (sender, arg) =>
             {
@@ -717,6 +735,18 @@ namespace CelestiaUWP
                     });
                 }
             }, new KeyboardAccelerator() { Modifiers = VirtualKeyModifiers.Control, Key = VirtualKey.V });
+            AppendItem(fileItem, LocalizationHelper.Localize("Share"), (sender, arg) =>
+            {
+                mRenderer.EnqueueTask(() =>
+                {
+                    var url = mAppCore.CurrentURL;
+                    var name = mAppCore.Simulation.Universe.NameForSelection(mAppCore.Simulation.Selection);
+                    _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                    {
+                        RequestShareURL(url, name);
+                    });
+                });
+            });
 
             fileItem.Items.Add(new MenuFlyoutSeparator());
 
@@ -896,7 +926,7 @@ namespace CelestiaUWP
             parent.Items.Add(item);
         }
 
-        void AppendToggleSubItem(MenuFlyoutSubItem parent, string text, bool isChecked,  RoutedEventHandler click)
+        void AppendToggleSubItem(MenuFlyoutSubItem parent, string text, bool isChecked, RoutedEventHandler click)
         {
             var item = new ToggleMenuFlyoutItem
             {
@@ -1031,12 +1061,18 @@ namespace CelestiaUWP
 
         void ShowBookmarkOrganizer()
         {
-            ShowPage(typeof(BookmarkOrganizerPage), new Size(400, 0), (mAppCore, mRenderer));
+            ShowPage(typeof(BookmarkOrganizerPage), new Size(400, 0), new BookmarkArgs(mAppCore, mRenderer));
+            WeakReferenceMessenger.Default.Unregister<ShareURLMessage>(this);
+            WeakReferenceMessenger.Default.Register<ShareURLMessage>(this, (r, m) =>
+            {
+                var value = m.Value;
+                ((MainPage)r).RequestShareURL(value.URL, value.Name);
+            });
         }
 
         void ShowNewBookmark()
         {
-            ShowPage(typeof(NewBookmarkPage), new Size(400, 0), (mAppCore, mRenderer));
+            ShowPage(typeof(NewBookmarkPage), new Size(400, 0), new BookmarkArgs(mAppCore, mRenderer));
         }
         async void ShowOpenGLInfo()
         {
@@ -1300,6 +1336,63 @@ namespace CelestiaUWP
         {
             OverlayBackground.Visibility = Visibility.Collapsed;
             OverlayContainer.Content = null;
+        }
+
+        private async void RequestShareURL(string url, string placeholder)
+        {
+            var dialog = new TextInputDialog(LocalizationHelper.Localize("Please enter a description of the content."));
+            dialog.Text = placeholder;
+            var result = await dialog.ShowAsync();
+            if (result != ContentDialogResult.Primary) return;
+
+            var title = dialog.Text;
+            if (title == null)
+                title = "";
+            SubmitURL(url, title);
+        }
+
+        private async void SubmitURL(string url, string title)
+        {
+            Package package = Package.Current;
+            PackageId packageId = package.Id;
+            PackageVersion version = packageId.Version;
+            var ver = string.Format("{0}.{1}.{2}.{3}", version.Major, version.Minor, version.Build, version.Revision);
+            var encodedURL = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(url));
+            var request = new URLCreationRequest(title, encodedURL, ver);
+
+            Windows.Web.Http.HttpClient httpClient = new Windows.Web.Http.HttpClient();
+            Uri requestUri = new Uri(Constants.APIPrefix + "/create");
+
+            var json = JsonConvert.SerializeObject(request);
+            var httpContent = new Windows.Web.Http.HttpStringContent(json, Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/json");
+            try
+            {
+                var httpResponse = await httpClient.PostAsync(requestUri, httpContent);
+                httpResponse.EnsureSuccessStatusCode();
+                var httpResponseBody = await httpResponse.Content.ReadAsStringAsync();
+                var response = JsonConvert.DeserializeObject<RequestResult>(httpResponseBody).Get<URLCreationResponse>();
+                var responseURL = response.publicURL;
+                if (responseURL == null)
+                {
+                    ContentDialogHelper.ShowAlert(this, LocalizationHelper.Localize("Cannot share URL"));
+                    return;
+                }
+                URLToShare = new Uri(responseURL);
+                DataTransferManager.ShowShareUI();
+            }
+            catch (Exception)
+            {
+                ContentDialogHelper.ShowAlert(this, LocalizationHelper.Localize("Cannot share URL"));
+            }
+        }
+
+        private void DataTransferManager_DataRequested(DataTransferManager sender, DataRequestedEventArgs args)
+        {
+            if (URLToShare == null) return;
+            DataRequest request = args.Request;
+            request.Data.Properties.Title = LocalizationHelper.Localize("Celestia");
+            request.Data.SetWebLink(URLToShare);
+            URLToShare = null;
         }
     }
 }
