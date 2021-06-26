@@ -652,7 +652,8 @@ namespace CelestiaUWP
                 {
                     Title = name,
                     IsTabStop = false,
-                    AllowFocusOnInteraction = false
+                    AllowFocusOnInteraction = false,
+                    Name = name,
                 };
             }
 
@@ -734,6 +735,17 @@ namespace CelestiaUWP
                         mAppCore.GoToURL(text);
                     });
                 }
+            }, new KeyboardAccelerator() { Modifiers = VirtualKeyModifiers.Control, Key = VirtualKey.V });
+            AppendItem(fileItem, LocalizationHelper.Localize("Input URL"), async (sender, arg) =>
+            {
+                var dialog = new TextInputDialog(LocalizationHelper.Localize("URL"));
+                var result = await dialog.ShowAsync();
+                if (result != ContentDialogResult.Primary) return;
+                var text = dialog.Text;
+                mRenderer.EnqueueTask(() =>
+                {
+                    mAppCore.GoToURL(text);
+                });
             }, new KeyboardAccelerator() { Modifiers = VirtualKeyModifiers.Control, Key = VirtualKey.V });
             AppendItem(fileItem, LocalizationHelper.Localize("Share"), (sender, arg) =>
             {
@@ -906,7 +918,8 @@ namespace CelestiaUWP
         {
             var item = new MenuFlyoutItem
             {
-                Text = text
+                Text = text,
+                Name = text,
             };
             if (accelerator != null)
                 item.KeyboardAccelerators.Add(accelerator);
