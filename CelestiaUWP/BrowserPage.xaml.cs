@@ -94,9 +94,9 @@ namespace CelestiaUWP
             }
             mStarRoot = new CelestiaBrowserItem[]
             {
-                new CelestiaBrowserItem(LocalizationHelper.Localize("Nearest Stars"), s1.ToArray()),
-                new CelestiaBrowserItem(LocalizationHelper.Localize("Brightest Stars"), s2.ToArray()),
-                new CelestiaBrowserItem(LocalizationHelper.Localize("Stars with Planets"), s3.ToArray()),
+                new CelestiaBrowserItem(LocalizationHelper.Localize("Nearest Stars"), s1.ToArray(), true),
+                new CelestiaBrowserItem(LocalizationHelper.Localize("Brightest Stars"), s2.ToArray(), true),
+                new CelestiaBrowserItem(LocalizationHelper.Localize("Stars with Planets"), s3.ToArray(), false),
             };
 
             var typeMap = new string[]
@@ -147,7 +147,7 @@ namespace CelestiaUWP
             {
                 if (results[i].Count > 0)
                 {
-                    dsoCategories.Add(new CelestiaBrowserItem(categoryNames[i], results[i].ToArray()));
+                    dsoCategories.Add(new CelestiaBrowserItem(categoryNames[i], results[i].ToArray(), false));
                 }
             }
             mDSORoot = dsoCategories.ToArray();
