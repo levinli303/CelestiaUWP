@@ -22,7 +22,7 @@ namespace winrt::CelestiaComponent::implementation
     struct CelestiaBrowserItem : CelestiaBrowserItemT<CelestiaBrowserItem>
     {
         CelestiaBrowserItem(hstring name, array_view<CelestiaComponent::CelestiaBrowserItem const> children, bool sorted);
-        CelestiaBrowserItem(hstring name, CelestiaComponent::CelestiaAstroObject const& obj, CelestiaComponent::CelestiaBrowserItemChildrenProvider const& provider);
+        CelestiaBrowserItem(hstring name, CelestiaComponent::CelestiaAstroObject const& obj, CelestiaComponent::CelestiaBrowserItemChildrenProvider const& provider, bool sorted);
 
         CelestiaComponent::CelestiaBrowserItemChildrenProvider Provider();
 

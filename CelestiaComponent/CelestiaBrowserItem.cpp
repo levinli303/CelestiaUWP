@@ -36,12 +36,13 @@ namespace winrt::CelestiaComponent::implementation
         {
             vec.push_back(child);
         }
-        std::sort(vec.begin(), vec.end(), CompareBrowserItems);
+        if (!sorted)
+            std::sort(vec.begin(), vec.end(), CompareBrowserItems);
         this->children = vec;
         areChildrenLoaded = true;
     }
 
-    CelestiaBrowserItem::CelestiaBrowserItem(hstring name, CelestiaComponent::CelestiaAstroObject const& obj, CelestiaComponent::CelestiaBrowserItemChildrenProvider const& provider) : CelestiaBrowserItemT<CelestiaBrowserItem>(), obj(obj), provider(provider), name(name), sorted(false)
+    CelestiaBrowserItem::CelestiaBrowserItem(hstring name, CelestiaComponent::CelestiaAstroObject const& obj, CelestiaComponent::CelestiaBrowserItemChildrenProvider const& provider, bool sorted) : CelestiaBrowserItemT<CelestiaBrowserItem>(), obj(obj), provider(provider), name(name), sorted(sorted)
     {
         areChildrenLoaded = false;
     }
