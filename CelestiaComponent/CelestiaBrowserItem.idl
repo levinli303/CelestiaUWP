@@ -18,7 +18,7 @@ namespace CelestiaComponent
     [default_interface]
     runtimeclass CelestiaBrowserItem
     {
-        CelestiaBrowserItem(String name, CelestiaBrowserItem[] children);
+        CelestiaBrowserItem(String name, CelestiaBrowserItem[] children, Boolean sorted);
         CelestiaBrowserItem(String name, CelestiaAstroObject obj, CelestiaBrowserItemChildrenProvider provider);
         CelestiaBrowserItemChildrenProvider Provider{ get; };
         String Name{ get; };
